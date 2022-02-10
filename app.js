@@ -1,46 +1,50 @@
-require('dotenv').config();
-
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const { errors } = require('celebrate');
-const DB_ADDRESS = require('./utils/config');
-const limiter = require('./utils/rateLimiter');
-const { errLogger, apiLogger } = require('./middlewares/logger');
-const errorHandler = require('./errors/errorHandler');
+const router = require('./routes');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
+const handleErrors = require('./middlewares/error-handler');
+const corsOption = require('./middlewares/cors');
 
-const { PORT = 3000, DB_LOCAL = DB_ADDRESS } = process.env;
+const { PORT = 3000, MONGO_URL = 'mongodb://localhost:27017/bitfilmsdb' } = process.env;
 
 const app = express();
 
-app.use(helmet());
-app.use(cors());
+// логгер запросов
+app.use(requestLogger);
 
-/**
- * Подключение к MongoDB
- */
-mongoose.connect(DB_LOCAL, {
+app.use(helmet());
+
+// парсим данные (собираем пакеты)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// подключаемся к серверу mongo
+mongoose.connect(MONGO_URL, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
-})
-  .then(() => console.log('Movies Explorer is connected to DB'));
+  useUnifiedTopology: true,
+  autoIndex: true,
+});
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// cors запросы
+app.use(cors(corsOption));
 
-app.use(apiLogger);
-app.use(limiter);
+// корневой роут
+app.use(router);
 
-app.use('/', require('./routes/index'));
+// логгер ошибок
+app.use(errorLogger);
 
-app.use(errLogger);
+// обработчики ошибок celebrate
 app.use(errors());
 
-app.use(errorHandler);
+// обрабатываем остальные ошибки
+app.use(handleErrors);
 
-app.listen(PORT, () => {
-  console.log(`Movie Explorer Backend is listening on port ${PORT}`);
-});
+app.listen(PORT, () => PORT);

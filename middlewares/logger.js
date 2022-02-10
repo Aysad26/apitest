@@ -1,24 +1,23 @@
-/**
- * Логгер для сохранения запросов и ошибок
- */
 const winston = require('winston');
 const expressWinston = require('express-winston');
 
-const apiLogger = expressWinston.logger({
+// логгер запросов
+const requestLogger = expressWinston.logger({
   transports: [
     new winston.transports.File({ filename: 'request.log' }),
   ],
   format: winston.format.json(),
 });
 
-const errLogger = expressWinston.logger({
+// логгер ошибок
+const errorLogger = expressWinston.errorLogger({
   transports: [
-    new winston.transports.File({ filename: 'errors.log' }),
+    new winston.transports.File({ filename: 'error.log' }),
   ],
   format: winston.format.json(),
 });
 
 module.exports = {
-  apiLogger,
-  errLogger,
+  requestLogger,
+  errorLogger,
 };

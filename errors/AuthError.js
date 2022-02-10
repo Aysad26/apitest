@@ -1,11 +1,9 @@
-/**
- * Централизованная обработка ошибок.
- * Ошибка авторизации
- */
+const { ERROR_CODE_AUTH } = require('../utils/constants');
+
 class AuthError extends Error {
   constructor(message) {
     super(message);
-    this.statusCode = 401;
+    this.statusCode = ERROR_CODE_AUTH;
   }
 }
 

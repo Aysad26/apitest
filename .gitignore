@@ -5,12 +5,10 @@ npm-debug.log*
 
 # Dependency directory
 node_modules
+.env
 
 # Optional npm cache directory
 .npm
-*.env
-.env
-package-lock.json
 
 # Optional REPL history
 .DS_Store

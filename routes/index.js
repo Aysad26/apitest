@@ -1,23 +1,26 @@
-/**
- * Подключение роутов — чтобы в app.js импортировался единый роут
- */
 const router = require('express').Router();
-const userRoutes = require('./users.js');
-const moviesRoutes = require('./movies');
+const userRouter = require('./users');
+const movieRouter = require('./movies');
+const { createUser, login, logout } = require('../controllers/users');
 const auth = require('../middlewares/auth');
-
-const { createUser, loginUser } = require('../controllers/usersController');
-
 const NotFoundError = require('../errors/notFoundError');
-const { signupValidate, signinValidate } = require('../middlewares/validate');
+const { validateSignup, validateSignin } = require('../middlewares/validation');
 
-router.post('/signin', signinValidate, loginUser);
-router.post('/signup', signupValidate, createUser);
+// роуты, не требующие авторизации
+// роут регистрации
+router.post('/signup', validateSignup, createUser);
+// роут логина
+router.post('/signin', validateSignin, login);
 
-router.use('/', auth, userRoutes, moviesRoutes);
+// мидлвэр авторизации
+router.use(auth);
 
-router.all('/*', () => {
-  throw new NotFoundError('Страница не найдена');
+// роуты требующие авторизации
+router.use('/users', userRouter);
+router.use('/movies', movieRouter);
+router.post('/signout', logout);
+router.use((req, res, next) => {
+  next(new NotFoundError(`Запрашиваемый ресурс по адресу '${req.path}' не найден`));
 });
 
 module.exports = router;

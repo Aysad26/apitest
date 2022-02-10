@@ -1,12 +1,12 @@
-/**
- * Описание роутов пользователя
- */
 const router = require('express').Router();
-const { getProfile, updateProfile } = require('../controllers/usersController');
-const { patchUserValidate } = require('../middlewares/validate');
 
-router.get('/users/me', getProfile);
+const { getUser, updateUser } = require('../controllers/users');
+const { validateUserProfile } = require('../middlewares/validation');
 
-router.patch('/users/me', patchUserValidate, updateProfile);
+// возвращает информацию о пользователе (email и имя)
+router.get('/me', getUser);
+
+// обновляет информацию о пользователе (email и имя)
+router.patch('/me', validateUserProfile, updateUser);
 
 module.exports = router;
