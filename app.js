@@ -1,52 +1,46 @@
+require('dotenv').config();
+
 const express = require('express');
-const helmet = require('helmet');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
+const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
-const routes = require('./routes');
-const errorsHandler = require('./middlewares/errorsHandler');
-const limiter = require('./middlewares/rateLimiter');
-const {
-  requestLogger,
-  errorLogger,
-} = require('./middlewares/logger');
+const DB_ADDRESS = require('./utils/config');
+const limiter = require('./utils/rateLimiter');
+const { errLogger, apiLogger } = require('./middlewares/logger');
+const errorHandler = require('./errors/errorHandler');
 
-dotenv.config();
-const {
-  NODE_ENV,
-  PORT = 3030,
-  DB_URL,
-} = process.env;
+const { PORT = 3000, DB_LOCAL = DB_ADDRESS } = process.env;
 
 const app = express();
-app.use(helmet());
 
-mongoose.connect(NODE_ENV === 'production' ? DB_URL : 'mongodb://localhost:27017/bitfilmsdb', {
+app.use(helmet());
+app.use(cors());
+
+/**
+ * Подключение к MongoDB
+ */
+mongoose.connect(DB_LOCAL, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
-  useUnifiedTopology: true,
-});
-
-app.use(cors({
-  origin: NODE_ENV === 'production' ? 'https://movies.kamenskiyyyy.nomoredomains.icu' : 'http://localhost:3000',
-  credentials: true,
-}));
+})
+  .then(() => console.log('Movies Explorer is connected to DB'));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(requestLogger);
-
+app.use(apiLogger);
 app.use(limiter);
 
-app.use(routes);
+app.use('/', require('./routes/index'));
 
-app.use(errorLogger);
-app.use(errors()); // обработчик ошибок celebrate
+app.use(errLogger);
+app.use(errors());
 
-app.use(errorsHandler);
+app.use(errorHandler);
 
-app.listen(PORT);
+app.listen(PORT, () => {
+  console.log(`Movie Explorer Backend is listening on port ${PORT}`);
+});

@@ -1,21 +1,23 @@
+/**
+ * Подключение роутов — чтобы в app.js импортировался единый роут
+ */
 const router = require('express').Router();
-const usersRouter = require('./users');
-const moviesRouter = require('./movies');
-const NotFoundError = require('../errors/NotFoundError');
+const userRoutes = require('./users.js');
+const moviesRoutes = require('./movies');
 const auth = require('../middlewares/auth');
-const { login, createUser } = require('../controllers/users');
-const { validateSignUp, validateSignIn } = require('../middlewares/validation');
 
-router.post('/signin', validateSignIn, login);
-router.post('/signup', validateSignUp, createUser);
+const { createUser, loginUser } = require('../controllers/usersController');
 
-router.use(auth);
+const NotFoundError = require('../errors/notFoundError');
+const { signupValidate, signinValidate } = require('../middlewares/validate');
 
-router.use('/users', usersRouter);
-router.use('/movies', moviesRouter);
+router.post('/signin', signinValidate, loginUser);
+router.post('/signup', signupValidate, createUser);
 
-router.all('*', () => {
-  throw new NotFoundError('Такой страницы не существует');
+router.use('/', auth, userRoutes, moviesRoutes);
+
+router.all('/*', () => {
+  throw new NotFoundError('Страница не найдена');
 });
 
 module.exports = router;

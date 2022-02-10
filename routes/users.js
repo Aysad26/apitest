@@ -1,12 +1,12 @@
-const router = require('express')
-  .Router();
-const { validateUserInfo } = require('../middlewares/validation');
-const {
-  updateProfile,
-  getMyUser,
-} = require('../controllers/users');
+/**
+ * Описание роутов пользователя
+ */
+const router = require('express').Router();
+const { getProfile, updateProfile } = require('../controllers/usersController');
+const { patchUserValidate } = require('../middlewares/validate');
 
-router.get('/me', getMyUser); // возвращает информацию о пользователе (email и имя)
-router.patch('/me', validateUserInfo, updateProfile); // обновляет информацию о пользователе (email и имя)
+router.get('/users/me', getProfile);
+
+router.patch('/users/me', patchUserValidate, updateProfile);
 
 module.exports = router;

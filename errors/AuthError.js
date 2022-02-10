@@ -1,3 +1,7 @@
+/**
+ * Централизованная обработка ошибок.
+ * Ошибка авторизации
+ */
 class AuthError extends Error {
   constructor(message) {
     super(message);
